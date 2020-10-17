@@ -57,20 +57,21 @@
           </Waterfall>
           <infinite-loading force-use-infinite-wrapper :identifier="infiniteId" @infinite="infiniteHandler"></infinite-loading>
         </div>
-        <div class="body-box" v-if="setting.view === 'table'">
+        <div class="show-table" v-if="setting.view === 'table'">
           <div class="zy-table">
             <div class="tBody">
               <el-table
-                :data="list"
+                :data="list.filter(res => !setting.excludeR18Films || !containsR18Keywords(res.type))"
                 height="100%"
                 row-key="id"
                 :border="tableBorder"
                 @header-click="tableBorder = !tableBorder"
-                @row-click="detailEvent"
+                @row-click="detailEventTable"
                 style="width: 100%">
                 <el-table-column
                   prop="name"
-                  label="片名">
+                  label="片名"
+                  >
                 </el-table-column>
                 <el-table-column
                   prop="type"
@@ -78,7 +79,8 @@
                 </el-table-column>
                 <el-table-column
                   prop="year"
-                  label="上映">
+                  label="上映"
+                  align="center">
                 </el-table-column>
                 <el-table-column
                   prop="note"
@@ -90,9 +92,9 @@
                   label="最近更新">
                 </el-table-column>
                 <el-table-column
-                  fixed="right"
                   label="操作"
-                  align="center">
+                  header-align="center"
+                  align="right">
                   <template slot-scope="scope">
                     <el-button @click.stop="playEvent(site, scope.row)" type="text">播放</el-button>
                     <el-button @click.stop="starEvent(site, scope.row)" type="text">收藏</el-button>
@@ -104,7 +106,7 @@
                    slot="append"
                    :identifier="infiniteId"
                    @infinite="infiniteHandler"
-                  force-use-infinite-wrapper=".el-table__body-wrapper">
+                   force-use-infinite-wrapper=".el-table__body-wrapper">
                 </infinite-loading>
               </el-table>
             </div>
@@ -112,14 +114,14 @@
         </div>
       </div>
       <div class="body-box" v-show="show.find">
-        <div class="zy-table">
+       <div class="show-table">
+        <div class="zy-table zy-scroll">
           <div class="tBody zy-scroll">
             <el-table
+              ref="table"
               :data="searchContents"
               height="100%"
               row-key="id"
-              :border="tableBorder"
-              @header-click="tableBorder = !tableBorder"
               @row-click="detailEvent"
               style="width: 100%">
               <el-table-column
@@ -147,9 +149,9 @@
                 label="备注">
               </el-table-column>
               <el-table-column
-                fixed="right"
                 label="操作"
-                align="center">
+                header-align="center"
+                align="right">
                 <template slot-scope="scope">
                   <el-button @click.stop="playEvent(scope.row.site, scope.row)" type="text">播放</el-button>
                   <el-button @click.stop="starEvent(scope.row.site, scope.row)" type="text">收藏</el-button>
@@ -161,6 +163,7 @@
           </div>
         </div>
       </div>
+     </div>
     </div>
   </div>
 </template>
@@ -195,9 +198,8 @@ export default {
       searchList: [],
       searchTxt: '',
       searchContents: [],
-      tableBorder: false,
       // 福利片关键词
-      r18KeyWords: ['伦理', '倫理', '福利', '激情', '理论', '写真', '情色', '美女', '街拍', '赤足', '性感', '里番']
+      r18KeyWords: ['伦理', '倫理', '福利', '激情', '理论', '写真', '情色', '美女', '街拍', '赤足', '性感', '里番'],
     }
   },
   components: {
@@ -366,6 +368,9 @@ export default {
         }
       })
     },
+    detailEventTable (e) {
+      this.detailEvent(this.site, e)
+    },
     detailEvent (site, e) {
       this.detail = {
         show: true,
@@ -512,6 +517,7 @@ export default {
       } else {
         this.searchSingleSiteEvent(this.site, wd)
       }
+      console.log(this.$refs.table)
     },
     searchSingleSiteEvent (site, wd) {
       var sites = []
@@ -584,6 +590,10 @@ export default {
     .body-box{
       height: 100%;
       width: 100%;
+      .show-table {
+        height: 100%;
+        width: 100%;
+      }
     }
     .show-img{
       height: 100%;
